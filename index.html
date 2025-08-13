@@ -1,1 +1,710 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ashwin A. Sharma — Low-Poly Scroll Sequence Portfolio</title>
+  <meta name="description" content="Low-poly scroll-driven image-sequence portfolio for Ashwin A. Sharma." />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0b0f14;
+      --bg-2: #0e141b;
+      --ink: #e9eef4;
+      --muted: #b6c2d0;
+      --accent-1: #6ad6ff;   /* aqua */
+      --accent-2: #a48bff;   /* violet */
+      --accent-3: #57ffb0;   /* mint */
+      --card: #121923;
+      --cardEdge: rgba(255,255,255,0.06);
+      --edge: rgba(255,255,255,0.08);
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--ink);
+      background: radial-gradient(1200px 800px at 60% 20%, #101824 0%, var(--bg) 60%, #05070a 100%);
+      overflow-x: hidden;
+    }
+    a{color:var(--accent-1);text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    header{
+      position:fixed; inset: 0 0 auto 0; height:64px; z-index:10;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 20px;
+      background: linear-gradient(180deg, rgba(9,12,17,0.85), rgba(9,12,17,0));
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.5px;
+    }
+    .brand .logo{
+      width:28px; height:28px; position:relative; display:inline-block;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5));
+    }
+    .brand .logo::before, .brand .logo::after{
+      content:""; position:absolute; inset:0; transform: rotate(15deg) skew(-8deg);
+      clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+      background: linear-gradient(135deg, var(--accent-2), var(--accent-1));
+    }
+    .brand .logo::after{
+      inset:4px 4px 2px 4px; filter: blur(1px); opacity:.35; background: linear-gradient(160deg, #fff, transparent);
+    }
+    nav{display:flex; gap:16px}
+    nav a{color:var(--muted); font-weight:600; font-size:14px; opacity:.9}
+    nav a:hover{color:var(--ink); opacity:1}
+
+    /* Scroll-driven sequence section */
+    .sequence-section{
+      position:relative; height:360vh; /* Gives room to scrub frames */
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .sequence-stage{
+      position: sticky; top:0; height:100vh; width:100%;
+      overflow:hidden;
+    }
+    canvas#sequenceCanvas{
+      position:absolute; inset:0; width:100%; height:100%;
+      display:block;
+    }
+    .hero-overlay{
+      position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
+      padding: 120px 24px 24px;
+    }
+    .hero-card{
+      pointer-events:auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border:1px solid rgba(255,255,255,0.08);
+      box-shadow: var(--shadow);
+      border-radius:18px;
+      padding:24px;
+      max-width: 960px; width: min(92vw, 1000px);
+      display:grid; gap:10px;
+      backdrop-filter: blur(6px);
+      transform: translateZ(0);
+    }
+    .hero-title{
+      font-size: clamp(28px, 5vw, 54px);
+      line-height:1.05;
+      font-weight:800;
+      letter-spacing:.2px;
+      display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap;
+    }
+    .hero-title .chip{
+      font-size: clamp(10px, 2vw, 12px);
+      letter-spacing: .5px;
+      font-weight:800; text-transform:uppercase;
+      color:#071b14;
+      background: linear-gradient(135deg, var(--accent-3), var(--accent-1));
+      padding:8px 10px;
+      border-radius: 10px;
+      transform: skew(-8deg);
+    }
+    .hero-sub{
+      color: var(--muted);
+      font-size: clamp(14px, 2.2vw, 17px);
+    }
+    .contact-row{
+      display:flex; flex-wrap:wrap; gap:10px; margin-top:6px
+    }
+    .btn{
+      pointer-events:auto;
+      padding:10px 14px; border-radius: 12px; font-weight:700; font-size:14px; letter-spacing:.3px;
+      border:1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.03);
+      color:var(--ink);
+    }
+    .btn.accent{ background: linear-gradient(135deg, var(--accent-2), var(--accent-1)); color:#061018; border:none; }
+    .btn:hover{ filter: brightness(1.05) saturate(1.05) }
+
+    /* Content sections */
+    .content{
+      position:relative; z-index:1; padding: 40px 18px 120px;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .sec{
+      margin: 30px 0 14px; padding: 14px 4px; color: var(--muted);
+      display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.5px; text-transform:uppercase;
+    }
+    .sec .tri{
+      width:20px; height:18px; clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+      transform: skew(-8deg) rotate(-3deg);
+      opacity:.9;
+    }
+    .grid{
+      display:grid; gap:16px;
+      grid-template-columns: repeat(12, 1fr);
+    }
+    .card{
+      grid-column: span 12;
+      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+      border:1px solid var(--cardEdge);
+      border-radius:18px; padding:16px 16px;
+      box-shadow: var(--shadow);
+      position:relative; overflow: hidden;
+      isolation:isolate;
+    }
+    .card::after{
+      content:""; position:absolute; right:-10%; top:-30%; width: 45%; height: 140%;
+      background: linear-gradient(135deg, rgba(106,214,255,0.18), rgba(164,139,255,0.05));
+      clip-path: polygon(0 0, 100% 20%, 70% 100%, 0% 70%);
+      filter: blur(12px); opacity:.6; pointer-events:none;
+      transform: rotate(-8deg);
+      z-index:-1;
+    }
+    .card h3{margin:6px 0 6px; font-size:20px; color:var(--ink)}
+    .card .meta{color:var(--muted); font-size:13px; display:flex; gap:8px; flex-wrap:wrap}
+    .card ul{margin:8px 0 0 18px; padding:0; color: var(--ink)}
+    .card li{margin:6px 0}
+    .cols-6 > .card{ grid-column: span 6 }
+    .cols-4 > .card{ grid-column: span 4 }
+    .pill{
+      display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:700;
+      border:1px solid rgba(255,255,255,0.12); color:var(--muted); background: rgba(255,255,255,0.02);
+    }
+    .pill .dot{
+      width:8px; height:8px; border-radius:50%;
+      background: linear-gradient(135deg, var(--accent-3), var(--accent-1));
+      box-shadow: 0 0 8px rgba(106,214,255,0.6);
+    }
+
+    .footer{
+      padding: 30px 16px 80px; text-align:center; color: var(--muted);
+    }
+
+    /* Responsive */
+    @media (min-width: 820px){
+      .hero-card{padding:30px 32px}
+      .grid .card p{max-width: 90%}
+      .cols-6 > .card{ grid-column: span 6 }
+      .cols-4 > .card{ grid-column: span 4 }
+    }
+    @media (max-width: 819px){
+      .cols-6 > .card, .cols-4 > .card{ grid-column: span 12 }
+    }
+
+    /* Preference: reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .sequence-section{height:120vh}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="logo" aria-hidden="true"></span>
+      <span>Ashwin A. Sharma</span>
+    </div>
+    <nav>
+      <a href="#experience">Experience</a>
+      <a href="#projects">Projects</a>
+      <a href="#education">Education</a>
+      <a href="#skills">Skills</a>
+      <a href="#publications">Publications</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <!-- Scroll-driven low-poly sequence -->
+  <section class="sequence-section" aria-label="Low-poly scroll sequence">
+    <div class="sequence-stage">
+      <canvas id="sequenceCanvas"></canvas>
+      <div class="hero-overlay">
+        <div class="hero-card">
+          <div class="hero-title">
+            Machine Learning Engineer & Tech Lead
+            <span class="chip">Low Poly</span>
+          </div>
+          <div class="hero-sub">
+            Building production-grade AI systems across CV, RL, LLMs, and cloud. NYU MS CS (3.77). Ex-Founding ML Engineer at Nextap AI.
+          </div>
+          <div class="contact-row">
+            <a class="btn accent" href="mailto:sharmaashwin4000@gmail.com">Email</a>
+            <a class="btn" href="tel:+19292455681">+1 929-245-5681</a>
+            <a class="btn" target="_blank" rel="noopener" href="https://github.com/ashwin-2001">GitHub</a>
+            <a class="btn" target="_blank" rel="noopener" href="https://linkedin.com/in/ashwinsharma2001">LinkedIn</a>
+            <span class="pill"><span class="dot"></span> F‑1 (NYU), CPT eligible Fall 2025 • NYC/Remote</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <main class="content">
+    <div class="sec" id="experience">
+      <div class="tri"></div> Experience
+    </div>
+    <section class="grid">
+      <article class="card">
+        <h3>Founding ML Engineer & Tech Lead — Nextap AI</h3>
+        <div class="meta">Apr 2023–Jul 2024 • Built and led an 8-person team • 98% client retention</div>
+        <ul>
+          <li>Published Android app “Artific AI” (1,500+ installs, 100+ DAU) delivering GPT-powered text, image, and code utilities.</li>
+          <li>Delivered 300+ ML/cloud client projects with an end-to-end focus on reliability and performance.</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h3>Senior Machine Learning Engineer — ViaLYTICS Consulting (Remote)</h3>
+        <div class="meta">Aug 2022–Apr 2023 • CV, RL, Cloud</div>
+        <ul>
+          <li>Cut AWS EC2 idle spend by 19% via PPO/DQN autoscaler; custom Gym sim, CloudWatch triggers, CI/CD.</li>
+          <li>Deployed Faster R-CNN + OpenCV traffic service (18 FPS, 97% precision); JSON feeds Power BI for 12 municipalities.</li>
+          <li>Shipped async video-screening tool reducing recruiter review time by 75% (3× candidate throughput).</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h3>Founding ML Engineer — Nextap AI</h3>
+        <div class="meta">Sep 2021–Aug 2022 • Bootstrapped AI tooling studio</div>
+        <ul>
+          <li>Bootstrapped to five-figure USD revenue in six months; shipped Codilarity.com adopted by 2,000+ developers.</li>
+          <li>Delivered first 120 ML & cloud PoCs for ed-tech and fintech clients.</li>
+        </ul>
+      </article>
+    </section>
+
+    <div class="sec" id="projects">
+      <div class="tri"></div> Selected Projects
+    </div>
+    <section class="grid cols-6">
+      <article class="card">
+        <h3>SnapPhil — AI Job-Application Assistant (Chrome Extension)</h3>
+        <div class="meta">TypeScript • OpenAI API • GPT‑4</div>
+        <ul>
+          <li>Auto-fills job forms and cover letters, cutting effort from 45 min to under a minute.</li>
+          <li>LLM match engine + Apps Script backend processes 900+ applications/day in beta; full BRD, Cypress E2E, CI/CD.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>Autonomous-Driving Simulator + RL Agent</h3>
+        <div class="meta">Python • Pygame • RLlib</div>
+        <ul>
+          <li>2D simulator with LiDAR, OBB collisions, convex-hull tracks; PPO outperformed DQN by +160% reward.</li>
+          <li>Packaged as pip module now used in NYU RL labs.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>RAG Assistant for ROS2 Robotics</h3>
+        <div class="meta">TensorFlow • Hugging Face • Gradio</div>
+        <ul>
+          <li>Fine-tuned 4-bit LLM with 1,700+ instructions; reduced robotics dev time by 40%.</li>
+          <li>Vector DB + MongoDB retrieval achieving 95% accuracy with under 500 ms latency.</li>
+        </ul>
+      </article>
+      <article class="card">
+        <h3>Pandemic Policy Simulator with RL</h3>
+        <div class="meta">NumPy • RLlib • IEEE ICCSAI ’23</div>
+        <ul>
+          <li>Vectorized ops for 700× speed-up (700 ms → 1 ms/frame); DQN/PPO replicate lockdown logic with 87% fidelity.</li>
+        </ul>
+      </article>
+    </section>
+
+    <div class="sec" id="education">
+      <div class="tri"></div> Education
+    </div>
+    <section class="grid cols-6">
+      <article class="card">
+        <h3>New York University</h3>
+        <div class="meta">MS Computer Science • Sep 2024–May 2026 • GPA 3.77/4.00</div>
+      </article>
+      <article class="card">
+        <h3>University of Mumbai</h3>
+        <div class="meta">BE Computer Engineering • 2019–2023 • CGPA 8.21/10</div>
+      </article>
+    </section>
+
+    <div class="sec" id="skills">
+      <div class="tri"></div> Technical Skills
+    </div>
+    <section class="grid cols-4">
+      <article class="card">
+        <h3>Languages</h3>
+        <p>Python, JavaScript/TypeScript, C++, SQL</p>
+      </article>
+      <article class="card">
+        <h3>ML / CV</h3>
+        <p>PyTorch, TensorFlow, scikit-learn, OpenCV, Faster R-CNN, RLlib (PPO, DQN)</p>
+      </article>
+      <article class="card">
+        <h3>LLMs</h3>
+        <p>GPT‑4, RAG, LangChain, Hugging Face</p>
+      </article>
+      <article class="card">
+        <h3>Cloud / DevOps</h3>
+        <p>AWS EC2/S3/CloudWatch, Docker, GitHub Actions • Databases: MongoDB, basic PostgreSQL • Tools: Linux, Bash, pytest, pandas, matplotlib</p>
+      </article>
+    </section>
+
+    <div class="sec" id="publications">
+      <div class="tri"></div> Publications
+    </div>
+    <section class="grid">
+      <article class="card">
+        <h3>IEEE ICCSAI ’23 — Reinforcement-Learning-Driven Pandemic Policy Simulator</h3>
+        <div class="meta">doi: 10.1109/ICCSAI59793.2023.10421231</div>
+      </article>
+      <article class="card">
+        <h3>IEEE IBSSC ’22 — Statistical Data Analysis using GPT-3</h3>
+        <div class="meta">doi: 10.1109/IBSSC56953.2022.10037383</div>
+      </article>
+    </section>
+
+    <div class="sec" id="contact">
+      <div class="tri"></div> Contact
+    </div>
+    <section class="grid">
+      <article class="card">
+        <h3>Let’s build!</h3>
+        <p>Email: <a href="mailto:sharmaashwin4000@gmail.com">sharmaashwin4000@gmail.com</a> • Phone: <a href="tel:+19292455681">+1 929-245-5681</a></p>
+        <p>GitHub: <a target="_blank" rel="noopener" href="https://github.com/ashwin-2001">github.com/ashwin-2001</a> • LinkedIn: <a target="_blank" rel="noopener" href="https://linkedin.com/in/ashwinsharma2001">linkedin.com/in/ashwinsharma2001</a></p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    © 2025 • Designed in a low‑poly style • Scroll to scrub the sequence
+  </footer>
+
+  <script>
+  // Low‑poly "image sequence" generated on canvas, scrubbed by scroll.
+  // Replaceable: You can switch to real image frames (see CONFIG.useImageFrames).
+  (() => {
+    const CONFIG = {
+      useImageFrames: false,         // If true, will try to load frame images (configure below)
+      imagePath: i => `./frames/frame_${String(i).padStart(4,'0')}.webp`,
+      frameCount: 180,               // Number of frames if using real images
+      // Generated sequence settings:
+      gridCellsX: window.innerWidth > 900 ? 28 : 16,
+      gridCellsY: window.innerWidth > 900 ? 18 : 12,
+      jitter: 0.08,                  // Vertex jitter for low-poly look
+      amp: 0.55,                     // Wave amplitude
+      freq: 2.2,                     // Wave frequency
+      lightDir: normalize([0.2, -0.7, 1.0]),
+      bg: '#0b0f14',
+      colors: {                      // HSL base palette (low poly tones)
+        h1: 210, h2: 265, sat: 70, light: 50
+      },
+      sectionId: 'sequenceCanvas',
+      sectionEl: document.querySelector('.sequence-section'),
+      pixelRatioCap: 1.75
+    };
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const stage = document.getElementById(CONFIG.sectionId);
+    const ctx = stage.getContext('2d', { alpha: false, desynchronized: true });
+    let dpr = Math.min(CONFIG.pixelRatioCap, window.devicePixelRatio || 1);
+
+    let W = 0, H = 0, CX = 0, CY = 0, SCALE = 0;
+    let vertices = [];   // base vertices (x,y in [-1,1]), jittered
+    let tris = [];       // [a,b,c] indices
+    let world = [];      // per-frame computed world coords
+    let screen = [];     // per-frame screen coords
+    let rafPending = false;
+    let scrollProgress = 0; // 0..1
+
+    // If using image frames:
+    const images = [];
+    let imagesReady = false;
+
+    function setupCanvas(){
+      const rect = stage.getBoundingClientRect();
+      W = Math.floor(rect.width * dpr);
+      H = Math.floor(rect.height * dpr);
+      stage.width = W;
+      stage.height = H;
+      stage.style.width = rect.width + 'px';
+      stage.style.height = rect.height + 'px';
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.scale(dpr, dpr); // make drawing commands in CSS pixels
+      CX = rect.width / 2;
+      CY = rect.height / 2;
+      SCALE = Math.min(rect.width, rect.height) * 0.55;
+    }
+
+    function seedPRNG(seed=123456){
+      // Mulberry32
+      return function(){
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t ^= t + Math.imul(t ^ t >>> 7, 61 | t);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      }
+    }
+
+    function normalize(v){
+      const m = Math.hypot(v[0], v[1], v[2]) || 1;
+      return [v[0]/m, v[1]/m, v[2]/m];
+    }
+
+    function cross(a,b){
+      return [
+        a[1]*b[2] - a[2]*b[1],
+        a[2]*b[0] - a[0]*b[2],
+        a[0]*b[1] - a[1]*b[0],
+      ];
+    }
+    function dot(a,b){ return a[0]*b[0]+a[1]*b[1]+a[2]*b[2] }
+
+    function buildMesh(){
+      vertices.length = 0;
+      tris.length = 0;
+      world.length = 0;
+      screen.length = 0;
+      const nx = CONFIG.gridCellsX;
+      const ny = CONFIG.gridCellsY;
+      const prng = seedPRNG(20250813);
+
+      // create (nx+1)*(ny+1) vertices in [-1,1] with jitter
+      for(let j=0;j<=ny;j++){
+        for(let i=0;i<=nx;i++){
+          const u = i/nx; const v = j/ny;
+          const x = -1 + 2*u;
+          const y = -1 + 2*v;
+          const jx = (prng()*2-1) * CONFIG.jitter * (1 - 0.18*Math.abs(y));
+          const jy = (prng()*2-1) * CONFIG.jitter * (1 - 0.18*Math.abs(x));
+          vertices.push({ x: x + jx, y: y + jy, u, v });
+        }
+      }
+      // triangles (two per cell) with alternating diagonal for variety
+      const cols = nx + 1;
+      for(let j=0;j<ny;j++){
+        for(let i=0;i<nx;i++){
+          const p00 = j*cols + i;
+          const p10 = p00 + 1;
+          const p01 = p00 + cols;
+          const p11 = p01 + 1;
+          const flip = ((i ^ j) & 1) === 1;
+          if(flip){
+            tris.push([p00, p10, p11]);
+            tris.push([p00, p11, p01]);
+          }else{
+            tris.push([p00, p10, p01]);
+            tris.push([p10, p11, p01]);
+          }
+        }
+      }
+      // prepare world/screen arrays
+      world.length = vertices.length;
+      screen.length = vertices.length;
+    }
+
+    function shadeColor(h, s, l, factor){
+      // factor [0..1] brighten/darken
+      const L = Math.max(0, Math.min(100, l * (0.6 + factor * 0.8)));
+      return `hsl(${h}, ${s}%, ${L}%)`;
+    }
+
+    function drawGenerated(progress){
+      const w = stage.clientWidth, h = stage.clientHeight;
+      // background
+      ctx.fillStyle = CONFIG.bg;
+      ctx.fillRect(0,0,w,h);
+
+      // compute animated transforms
+      const t = progress;
+      const rotY = (Math.sin(t * Math.PI*2) * 0.55) + 0.25;
+      const rotX = (Math.cos(t * Math.PI*2) * 0.25) - 0.05;
+      const amp = (0.3 + 0.7 * (0.5 - Math.cos(t*Math.PI*2)/2)) * CONFIG.amp; // smooth in/out
+      const freq = CONFIG.freq * (1.0 + 0.15 * Math.sin(t * Math.PI*4 + 0.6));
+
+      const sinY = Math.sin(rotY), cosY = Math.cos(rotY);
+      const sinX = Math.sin(rotX), cosX = Math.cos(rotX);
+
+      // compute vertex positions
+      const dist = 3.2; // camera distance
+      const plane = 1.35; // plane half span
+      const zBias = -0.6; // push back slightly
+      for(let i=0;i<vertices.length;i++){
+        const v = vertices[i];
+        const X = v.x * plane;
+        const Y = v.y * plane;
+
+        // Height via low-cost waves + a little trig noise
+        const phase = t*2.6;
+        const Z0 = Math.sin((X+phase)*freq)*0.6 + Math.cos((Y-phase*0.9)*freq*0.7);
+        const Z = (Z0*0.5 + Math.sin((X*5.3 - Y*3.7) + phase*3.0)*0.25) * amp;
+
+        // rotate around Y then X
+        let x = X, y = Y, z = Z + zBias;
+        // Y rotation
+        {
+          const nx = cosY*x + sinY*z;
+          const nz = -sinY*x + cosY*z;
+          x = nx; z = nz;
+        }
+        // X rotation
+        {
+          const ny = cosX*y - sinX*z;
+          const nz = sinX*y + cosX*z;
+          y = ny; z = nz;
+        }
+        // perspective
+        const persp = dist / (dist - z);
+        const sx = CX + x * SCALE * persp;
+        const sy = CY + y * SCALE * persp;
+
+        world[i] = [x,y,z];
+        screen[i] = [sx,sy,persp];
+      }
+
+      // draw triangles sorted by depth (Painter's algorithm)
+      const L = CONFIG.lightDir;
+      const toDraw = [];
+      for(let k=0;k<tris.length;k++){
+        const [a,b,c] = tris[k];
+        const A = world[a], B = world[b], C = world[c];
+
+        // normal
+        const AB = [B[0]-A[0], B[1]-A[1], B[2]-A[2]];
+        const AC = [C[0]-A[0], C[1]-A[1], C[2]-A[2]];
+        let N = cross(AB, AC);
+        const nm = Math.hypot(N[0],N[1],N[2]) || 1;
+        N = [N[0]/nm, N[1]/nm, N[2]/nm];
+
+        const brightness = Math.max(0, dot(N, L));
+        const avgZ = (A[2]+B[2]+C[2]) / 3;
+
+        // hue gradient across plane
+        const vu = (vertices[a].u + vertices[b].u + vertices[c].u)/3;
+        const vv = (vertices[a].v + vertices[b].v + vertices[c].v)/3;
+        const h = CONFIG.colors.h1 + (CONFIG.colors.h2 - CONFIG.colors.h1) * (0.6*vu + 0.4*vv);
+        const s = CONFIG.colors.sat;
+        const l = CONFIG.colors.light;
+        const fill = shadeColor(h, s, l, 0.2 + brightness);
+
+        toDraw.push({
+          a, b, c, fill, depth: avgZ,
+        });
+      }
+      toDraw.sort((p,q)=> p.depth - q.depth);
+
+      ctx.lineWidth = Math.max(1, Math.floor(dpr)*0.5);
+      for(const t of toDraw){
+        const A = screen[t.a], B = screen[t.b], C = screen[t.c];
+        ctx.beginPath();
+        ctx.moveTo(A[0], A[1]);
+        ctx.lineTo(B[0], B[1]);
+        ctx.lineTo(C[0], C[1]);
+        ctx.closePath();
+        ctx.fillStyle = t.fill;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.07)';
+        ctx.stroke();
+      }
+
+      // subtle vignette
+      const grd = ctx.createRadialGradient(CX, CY, Math.min(W,H)/8/dpr, CX, CY, Math.max(stage.clientWidth, stage.clientHeight)/0.9);
+      grd.addColorStop(0, 'rgba(0,0,0,0.0)');
+      grd.addColorStop(1, 'rgba(0,0,0,0.35)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0,0,stage.clientWidth,stage.clientHeight);
+    }
+
+    function drawImages(progress){
+      if(!imagesReady || images.length === 0){
+        // fallback to generated if images missing
+        drawGenerated(progress);
+        return;
+      }
+      const index = Math.max(0, Math.min(images.length-1, Math.round(progress*(images.length-1))));
+      const img = images[index];
+      const w = stage.clientWidth, h = stage.clientHeight;
+      ctx.fillStyle = CONFIG.bg;
+      ctx.fillRect(0,0,w,h);
+      // cover fit
+      const ir = img.width/img.height, cr = w/h;
+      let dw, dh, dx, dy;
+      if(ir > cr){ // image wider
+        dh = h; dw = ir*dh; dx = (w-dw)/2; dy = 0;
+      }else{
+        dw = w; dh = dw/ir; dx = 0; dy = (h-dh)/2;
+      }
+      ctx.drawImage(img, dx, dy, dw, dh);
+
+      // overlay low-poly tint for consistency
+      ctx.fillStyle = 'rgba(10,14,20,0.25)';
+      ctx.fillRect(0,0,w,h);
+    }
+
+    function onScroll(){
+      const sec = CONFIG.sectionEl;
+      if(!sec) return;
+      const rect = sec.getBoundingClientRect();
+      const total = (rect.height - window.innerHeight) || 1;
+      const p = Math.min(1, Math.max(0, -rect.top / total));
+      scrollProgress = prefersReduced ? 0.45 : p;
+      requestDraw();
+    }
+
+    function requestDraw(){
+      if(rafPending) return;
+      rafPending = true;
+      requestAnimationFrame(()=>{
+        rafPending = false;
+        if(CONFIG.useImageFrames) drawImages(scrollProgress);
+        else drawGenerated(scrollProgress);
+      });
+    }
+
+    function onResize(){
+      dpr = Math.min(CONFIG.pixelRatioCap, window.devicePixelRatio || 1);
+      setupCanvas();
+      requestDraw();
+    }
+
+    function preloadImages(){
+      if(!CONFIG.useImageFrames) return;
+      let loaded = 0;
+      for(let i=0;i<CONFIG.frameCount;i++){
+        const im = new Image();
+        im.loading = 'eager';
+        im.decoding = 'async';
+        im.src = CONFIG.imagePath(i+1);
+        im.onload = () => {
+          loaded++;
+          if(loaded === CONFIG.frameCount){
+            imagesReady = true;
+            requestDraw();
+          }
+        };
+        images.push(im);
+      }
+    }
+
+    // Init
+    function init(){
+      setupCanvas();
+      if(!CONFIG.useImageFrames){
+        buildMesh();
+      }else{
+        preloadImages();
+      }
+      onScroll();
+      window.addEventListener('resize', onResize, { passive: true });
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      // First paint
+      requestDraw();
+    }
+
+    // Accessibility: If reduced motion, draw once at mid-progress
+    if(prefersReduced){
+      window.addEventListener('load', init);
+    }else{
+      init();
+    }
+  })();
+  </script>
+</body>
+</html>
