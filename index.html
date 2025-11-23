@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ASHWIN A. SHARMA | ARCHITECT</title>
     
-    <!-- Fonts: Playfair (Editorial/Luxury) & Montserrat (Technical/Clean) -->
+    <!-- Fonts: Cinzel (Headers/Luxury) & Space Grotesk (Tech/Body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Space+Grotesk:wght@300;400;600&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -16,549 +16,512 @@
 
     <style>
         :root {
-            --bg-deep: #050505;
-            --bg-panel: #0a0a0a;
-            --text-gold: #D4AF37; /* Champagne Gold */
-            --text-silver: #e0e0e0;
-            --text-muted: #666;
-            --glass: rgba(20, 20, 20, 0.6);
-            --border: rgba(212, 175, 55, 0.15);
+            --bg-deep: #030303;
+            --bg-panel: rgba(15, 15, 15, 0.7);
+            --accent-gold: #C5A059;
+            --accent-platinum: #E5E4E2;
+            --text-dim: #666;
+            --border-light: rgba(197, 160, 89, 0.2);
+            --voxel-size: 40px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             background-color: var(--bg-deep);
-            color: var(--text-silver);
-            font-family: 'Montserrat', sans-serif;
+            color: var(--accent-platinum);
+            font-family: 'Space Grotesk', sans-serif;
             overflow-x: hidden;
-            cursor: default; /* Custom cursor could be added here */
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* --- 3D Background --- */
-        #world {
+        /* --- 3D Canvas Background --- */
+        #canvas-container {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
             z-index: -1;
-            pointer-events: none; /* Allow clicking through */
+            pointer-events: none;
+            opacity: 0.4; /* Subtle backdrop */
         }
 
-        /* --- Typography System --- */
-        h1, h2, h3 {
-            font-family: 'Playfair Display', serif;
-            font-weight: 400;
-            line-height: 1.1;
+        /* --- Typography --- */
+        h1, h2, h3, .brand {
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.05em;
         }
 
-        .gold-text { color: var(--text-gold); }
-        .mono { font-family: 'Courier New', monospace; letter-spacing: 1px; font-size: 0.8rem; text-transform: uppercase; }
+        a { color: var(--accent-gold); text-decoration: none; position: relative; }
+        a::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; width: 0%; height: 1px;
+            background: var(--accent-gold); transition: width 0.3s;
+        }
+        a:hover::after { width: 100%; }
 
-        /* --- Layout Wrappers --- */
+        /* --- Navigation --- */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            mix-blend-mode: exclusion;
+        }
+        
+        .brand { font-size: 1.2rem; font-weight: 700; color: #fff; }
+        .status-dot { height: 8px; width: 8px; background: #0f0; border-radius: 50%; display: inline-block; margin-right: 8px; box-shadow: 0 0 10px #0f0; }
+        .system-status { font-family: monospace; font-size: 0.7rem; color: var(--accent-gold); letter-spacing: 2px; }
+
+        /* --- Layout --- */
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
         }
 
         section {
-            padding: 6rem 0;
+            min-height: 80vh;
+            padding: 8rem 0;
             position: relative;
-        }
-
-        /* --- Hero Section --- */
-        .hero {
-            height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding-top: 10vh;
         }
 
-        .hero-subtitle {
-            color: var(--text-gold);
-            letter-spacing: 4px;
-            margin-bottom: 1rem;
-            opacity: 0;
-            animation: fadeSlideUp 1s ease forwards 0.5s;
-        }
-
+        /* --- Hero --- */
         .hero h1 {
-            font-size: clamp(3rem, 8vw, 8rem); /* Responsive Typography */
-            color: #fff;
+            font-size: clamp(3rem, 7vw, 7rem);
+            line-height: 0.9;
             margin-bottom: 2rem;
-            opacity: 0;
-            animation: fadeSlideUp 1s ease forwards 0.8s;
+            background: linear-gradient(to right, #fff, #888);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .hero h1 i {
-            font-style: italic;
-            color: var(--text-muted);
-            font-weight: 300;
-        }
-
-        .hero-stats {
-            display: flex;
-            gap: 3rem;
-            margin-top: 2rem;
-            opacity: 0;
-            animation: fadeSlideUp 1s ease forwards 1.1s;
-        }
-
-        .stat-item span {
-            display: block;
-            font-size: 1.5rem;
-            color: #fff;
-            font-family: 'Playfair Display', serif;
-        }
-        .stat-item label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
+        .hero-sub {
+            font-size: 1.2rem;
+            color: var(--accent-gold);
             text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* --- The "Black Card" Layout for Experience --- */
-        .experience-card {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid var(--border);
-            padding: 4rem 2rem;
-            margin-bottom: 1rem;
-            transition: all 0.5s ease;
-        }
-
-        .experience-card:hover {
-            background: rgba(30, 30, 30, 0.8);
-            border-top: 1px solid var(--text-gold);
-        }
-
-        .role-header {
+            letter-spacing: 3px;
+            margin-bottom: 3rem;
             display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
+            align-items: center;
             gap: 1rem;
         }
 
-        .role-title { font-size: 2rem; color: #fff; }
-        .company { color: var(--text-gold); font-style: italic; font-family: 'Playfair Display', serif; font-size: 1.5rem; }
-        
-        .impact-list li {
-            list-style: none;
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
-            position: relative;
-            font-weight: 300;
-            line-height: 1.6;
-            max-width: 800px;
-        }
+        .hero-sub::before { content: ''; width: 40px; height: 1px; background: var(--accent-gold); }
 
-        .impact-list li::before {
-            content: "✦";
-            position: absolute;
-            left: 0;
-            color: var(--text-gold);
-            font-size: 0.8rem;
-            top: 4px;
-        }
-
-        /* --- Parallax Image / Project Sections --- */
-        .project-section {
+        /* --- Project Card (The Voxel Stage) --- */
+        .project-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 4rem;
+            margin-bottom: 8rem;
             align-items: center;
-            min-height: 80vh;
         }
 
-        .project-visual {
-            height: 60vh;
-            background: linear-gradient(45deg, #111, #222);
-            position: relative;
-            overflow: hidden;
-            border-radius: 4px;
-        }
-        
-        /* Simulating "Image Scrolling" with abstract CSS */
-        .project-visual::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(212, 175, 55, 0.03) 10px,
-                rgba(212, 175, 55, 0.03) 20px
-            );
-            animation: slowScroll 20s linear infinite;
-        }
+        .project-row.reverse { direction: rtl; }
+        .project-row.reverse .project-info { direction: ltr; }
 
-        .project-content h3 {
+        .project-info h3 {
             font-size: 2.5rem;
-            margin-bottom: 1rem;
             color: #fff;
+            margin-bottom: 1rem;
         }
 
         .tech-stack {
-            display: flex;
-            gap: 1rem;
+            font-family: monospace;
+            color: var(--accent-gold);
+            margin-bottom: 1.5rem;
+            font-size: 0.8rem;
+        }
+
+        .project-desc {
+            color: #aaa;
+            line-height: 1.7;
+            font-weight: 300;
             margin-bottom: 2rem;
-            flex-wrap: wrap;
         }
 
-        .tech-pill {
-            border: 1px solid #333;
-            padding: 0.5rem 1rem;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        /* --- PURE CSS VOXEL ART (Replaces Images) --- */
+        .voxel-stage {
+            width: 100%;
+            height: 400px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            perspective: 1000px;
+            overflow: hidden;
+            border-radius: 4px;
         }
 
-        /* --- Animations --- */
-        @keyframes fadeSlideUp {
-            to { opacity: 1; transform: translateY(0); }
+        .cube-assembly {
+            position: relative;
+            width: var(--voxel-size);
+            height: var(--voxel-size);
+            transform-style: preserve-3d;
+            animation: rotateAssembly 15s infinite linear;
         }
 
-        @keyframes slowScroll {
-            0% { transform: translate(0,0); }
-            100% { transform: translate(50px, 50px); }
+        .voxel {
+            position: absolute;
+            width: var(--voxel-size);
+            height: var(--voxel-size);
+            background: rgba(197, 160, 89, 0.1);
+            border: 1px solid var(--accent-gold);
+            transform-style: preserve-3d;
+            box-shadow: 0 0 15px rgba(197, 160, 89, 0.2);
+            transition: 0.5s;
         }
 
-        /* --- Mobile Adjustments --- */
-        @media (max-width: 768px) {
-            .container { padding: 0 1.5rem; }
-            .project-section { grid-template-columns: 1fr; gap: 2rem; }
-            .project-visual { height: 40vh; order: -1; } /* Visual on top */
-            .role-header { flex-direction: column; gap: 0.5rem; }
-            .role-title { font-size: 1.5rem; }
-            .company { font-size: 1.2rem; }
-            .hero-stats { flex-wrap: wrap; gap: 2rem; }
-            section { padding: 4rem 0; }
+        /* Voxel Faces */
+        .voxel::before, .voxel::after {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            background: inherit; border: inherit;
+        }
+        .voxel::before { transform: translateZ(-20px); }
+        .voxel::after { transform: translateZ(20px); }
+        .side {
+            position: absolute; width: 100%; height: 100%;
+            background: inherit; border: inherit;
+        }
+        .side.left { transform: rotateY(90deg) translateZ(20px); }
+        .side.right { transform: rotateY(-90deg) translateZ(20px); }
+        .side.top { transform: rotateX(90deg) translateZ(20px); }
+        .side.bottom { transform: rotateX(-90deg) translateZ(20px); }
+
+        /* Specific Shapes */
+        /* Shape 1: The Simulator (Car/block shape) */
+        .shape-sim .v1 { transform: translate3d(0, 0, 0); }
+        .shape-sim .v2 { transform: translate3d(40px, 0, 0); }
+        .shape-sim .v3 { transform: translate3d(-40px, 0, 0); }
+        .shape-sim .v4 { transform: translate3d(0, -40px, 0); }
+        .shape-sim .v5 { transform: translate3d(0, 0, 40px); }
+        
+        /* Shape 2: The Brain (Cluster) */
+        .shape-ai .v1 { transform: translate3d(0, 0, 0); animation: pulse 2s infinite; }
+        .shape-ai .v2 { transform: translate3d(30px, 30px, 30px); animation: pulse 2s infinite 0.2s; }
+        .shape-ai .v3 { transform: translate3d(-30px, -30px, -30px); animation: pulse 2s infinite 0.4s; }
+        .shape-ai .v4 { transform: translate3d(-30px, 30px, -30px); animation: pulse 2s infinite 0.6s; }
+        
+        /* Shape 3: The Platform (Tower) */
+        .shape-app .v1 { transform: translate3d(0, 40px, 0); }
+        .shape-app .v2 { transform: translate3d(0, 0, 0); }
+        .shape-app .v3 { transform: translate3d(0, -40px, 0); }
+        .shape-app .v4 { transform: translate3d(0, -80px, 0); opacity: 0.5; }
+
+        @keyframes rotateAssembly {
+            0% { transform: rotateX(-15deg) rotateY(0deg); }
+            100% { transform: rotateX(-15deg) rotateY(360deg); }
         }
         
-        /* Minimal Nav */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
+        @keyframes pulse {
+            0%, 100% { transform: scale3d(1,1,1) translate3d(var(--x), var(--y), var(--z)); box-shadow: 0 0 15px var(--accent-gold); }
+            50% { transform: scale3d(0.8,0.8,0.8) translate3d(var(--x), var(--y), var(--z)); box-shadow: 0 0 5px var(--accent-gold); }
+        }
+
+        /* --- Experience Table --- */
+        .exp-table {
             width: 100%;
-            padding: 2rem;
+            border-top: 1px solid #333;
+        }
+        
+        .exp-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            padding: 3rem 0;
+            border-bottom: 1px solid #333;
+            transition: background 0.3s;
+        }
+
+        .exp-row:hover { background: rgba(255,255,255,0.02); }
+        
+        .exp-date { font-family: monospace; color: var(--text-dim); }
+        .exp-role { font-size: 1.5rem; color: #fff; margin-bottom: 0.5rem; }
+        .exp-company { color: var(--accent-gold); font-family: 'Cinzel', serif; margin-bottom: 1rem; display: block; }
+        .exp-details li { list-style: none; color: #999; margin-bottom: 0.5rem; position: relative; padding-left: 1rem; }
+        .exp-details li::before { content: '›'; position: absolute; left: 0; color: var(--accent-gold); }
+
+        /* --- Footer --- */
+        footer {
+            border-top: 1px solid #333;
+            padding: 3rem 0;
+            margin-top: 4rem;
             display: flex;
             justify-content: space-between;
-            z-index: 100;
-            mix-blend-mode: difference;
+            align-items: center;
         }
-        
-        .logo { font-weight: 700; letter-spacing: 2px; color: #fff; }
-        .status { font-family: 'Courier New', monospace; font-size: 0.8rem; color: var(--text-gold); }
 
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 768px) {
+            .project-row, .project-row.reverse { grid-template-columns: 1fr; direction: ltr; }
+            .exp-row { grid-template-columns: 1fr; gap: 1rem; }
+            .hero h1 { font-size: 3.5rem; }
+            .voxel-stage { height: 300px; margin-bottom: 2rem; }
+        }
+
+        .reveal { opacity: 0; transform: translateY(30px); }
     </style>
 </head>
 <body>
 
-    <!-- The Canvas for 3D Object -->
-    <div id="world"></div>
+    <!-- 3D Voxel Field Background -->
+    <div id="canvas-container"></div>
 
     <nav>
-        <div class="logo">ASHWIN A. SHARMA</div>
-        <div class="status">● AVAILABLE FOR DEPLOYMENT 2025</div>
+        <div class="brand">ASHWIN A. SHARMA</div>
+        <div class="system-status"><span class="status-dot"></span> SYSTEM ONLINE</div>
     </nav>
 
     <div class="container">
-        <!-- Hero -->
-        <section class="hero">
-            <div class="hero-subtitle">VISIONARY • ENGINEER • STRATEGIST</div>
-            <h1>The Architect of <br><i>Autonomous Systems.</i></h1>
-            
-            <div class="hero-stats">
-                <div class="stat-item">
-                    <span>NYC</span>
-                    <label>Base of Operations</label>
-                </div>
-                <div class="stat-item">
-                    <span>MS CS</span>
-                    <label>NYU (3.77 GPA)</label>
-                </div>
-                <div class="stat-item">
-                    <span>RL & AI</span>
-                    <label>Specialization</label>
-                </div>
+        
+        <!-- Hero Section -->
+        <section>
+            <div class="hero-sub reveal">Architecting Intelligence</div>
+            <h1 class="reveal">The Future of <br><i>Autonomous Systems.</i></h1>
+            <p class="reveal" style="max-width: 600px; color: #888; margin-bottom: 2rem;">
+                MS CS at New York University. Specializing in Reinforcement Learning, Generative AI, and Scalable Infrastructure.
+            </p>
+            <div class="reveal">
+                <a href="mailto:sharmaashwin4000@gmail.com" style="margin-right: 2rem; font-family: monospace;">[ CONTACT ]</a>
+                <a href="https://github.com/ashwin-2001" style="font-family: monospace;">[ GITHUB ]</a>
             </div>
         </section>
 
-        <!-- Mission Statement (Bridge) -->
-        <section style="border-top: 1px solid #333;">
-            <h2 class="mono gold-text" style="margin-bottom: 2rem;">01 // THE MISSION</h2>
-            <p style="font-size: clamp(1.2rem, 3vw, 2rem); line-height: 1.4; max-width: 1000px;">
-                Engineering the intersection of Reinforcement Learning and Autonomous Robotics. 
-                From bootstrapping platforms to 5-figure revenues, to optimizing cloud infrastructure cutting costs by 19%. 
-                <span style="color: #fff;">Building the intelligence that moves the world.</span>
-            </p>
-        </section>
-
-        <!-- Projects (Innovations) -->
+        <!-- Innovation / Projects -->
         <section>
-            <h2 class="mono gold-text" style="margin-bottom: 4rem;">02 // INNOVATIONS</h2>
+            <h2 class="reveal" style="margin-bottom: 4rem; color: var(--accent-gold); font-size: 0.9rem; letter-spacing: 4px;">// SELECTED WORKS</h2>
 
             <!-- Project 1 -->
-            <div class="project-section reveal">
-                <div class="project-content">
-                    <h3>Autonomous Sim + RL Agent</h3>
-                    <div class="tech-stack">
-                        <span class="tech-pill">Python</span>
-                        <span class="tech-pill">RLlib</span>
-                        <span class="tech-pill">LiDAR Logic</span>
+            <div class="project-row reveal">
+                <!-- CSS Voxel Art: The Simulator -->
+                <div class="voxel-stage">
+                    <div class="cube-assembly shape-sim">
+                        <div class="voxel v1"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                        <div class="voxel v2"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                        <div class="voxel v3"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                        <div class="voxel v4"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                        <div class="voxel v5"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
                     </div>
-                    <p style="color: #bbb; line-height: 1.6; margin-bottom: 2rem;">
-                        Engineered an end-to-end driving simulator featuring convex-hull procedural tracks. 
-                        The PPO agents achieved <strong>+160% higher reward</strong> with 94% generalization capability. 
-                        Now packaged as core infrastructure for NYU research labs.
-                    </p>
-                    <a href="#" class="mono" style="color: var(--text-gold); text-decoration: none; border-bottom: 1px solid var(--text-gold);">VIEW BLUEPRINTS</a>
                 </div>
-                <div class="project-visual">
-                    <!-- Abstract visual handled by CSS -->
+                <div class="project-info">
+                    <h3>Autonomous Sim + RL Agent</h3>
+                    <div class="tech-stack">PYTHON | RLLIB | LIDAR PHYSICS</div>
+                    <p class="project-desc">
+                        Engineered an end-to-end driving simulator featuring convex-hull procedural tracks. 
+                        The PPO agents achieved +160% higher reward with 94% generalization capability. 
+                        Infrastructure currently deployed in NYU research labs.
+                    </p>
+                    <a href="#">VIEW BLUEPRINTS</a>
                 </div>
             </div>
 
             <!-- Project 2 -->
-            <div class="project-section reveal">
-                <div class="project-visual" style="background: linear-gradient(135deg, #1a1a1a, #0f0f0f);"></div>
-                <div class="project-content">
-                    <h3>GenAI Robotics Assistant</h3>
-                    <div class="tech-stack">
-                        <span class="tech-pill">TensorFlow</span>
-                        <span class="tech-pill">ROS2</span>
-                        <span class="tech-pill">Hugging Face</span>
+            <div class="project-row reverse reveal">
+                <!-- CSS Voxel Art: The Brain -->
+                <div class="voxel-stage">
+                    <div class="cube-assembly shape-ai">
+                        <div class="voxel v1" style="--x:0; --y:0; --z:0"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                        <div class="voxel v2" style="--x:30px; --y:30px; --z:30px"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                        <div class="voxel v3" style="--x:-30px; --y:-30px; --z:-30px"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                        <div class="voxel v4" style="--x:-30px; --y:30px; --z:-30px"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
                     </div>
-                    <p style="color: #bbb; line-height: 1.6; margin-bottom: 2rem;">
-                        Redefined robotic imitation learning by fine-tuning 4-bit LLMs with 1,700+ specific instructions.
-                        Achieved vector retrieval latency of <strong>&lt;500ms</strong> with a 95% task success rate.
-                        Cutting development cycles by 40%.
+                </div>
+                <div class="project-info">
+                    <h3>GenAI Robotics Assistant</h3>
+                    <div class="tech-stack">TENSORFLOW | ROS2 | RAG</div>
+                    <p class="project-desc">
+                        Fine-tuned 4-bit LLM with 1,700+ robotics-specific instructions. 
+                        Implemented vector retrieval with &lt;500ms latency and 95% task success.
+                        Drastically reduced robot planning time in complex environments.
                     </p>
-                    <a href="#" class="mono" style="color: var(--text-gold); text-decoration: none; border-bottom: 1px solid var(--text-gold);">ACCESS DATA</a>
+                    <a href="#">ACCESS DATA</a>
+                </div>
+            </div>
+
+            <!-- Project 3 -->
+            <div class="project-row reveal">
+                <!-- CSS Voxel Art: The Tower -->
+                <div class="voxel-stage">
+                    <div class="cube-assembly shape-app">
+                        <div class="voxel v1"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                        <div class="voxel v2"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                        <div class="voxel v3"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                        <div class="voxel v4"><div class="side left"></div><div class="side right"></div><div class="side top"></div><div class="side bottom"></div></div>
+                    </div>
+                </div>
+                <div class="project-info">
+                    <h3>VibeBrews Game Platform</h3>
+                    <div class="tech-stack">REACT NATIVE | TYPESCRIPT | AGENTIC AI</div>
+                    <p class="project-desc">
+                        Production mobile app for AI-generated HTML5 games.
+                        Architected pipeline handling 1,000+ concurrent sessions. 
+                        Achieved TikTok-style infinite scroll performance with &lt;100ms render times.
+                    </p>
+                    <a href="#">SYSTEM ARCHITECTURE</a>
                 </div>
             </div>
         </section>
 
-        <!-- Experience (Legacy) -->
+        <!-- Experience -->
         <section>
-            <h2 class="mono gold-text" style="margin-bottom: 4rem;">03 // TRAJECTORY</h2>
-
-            <div class="experience-card reveal">
-                <div class="role-header">
-                    <span class="role-title">Senior Machine Learning Engineer</span>
-                    <span class="company">ViaLYTICS Consulting</span>
-                </div>
-                <div class="mono" style="margin-bottom: 2rem; color: #888;">Aug 2022 – Apr 2023</div>
-                <ul class="impact-list">
-                    <li>Architected RL autoscaler (PPO/DQN) reducing AWS EC2 idle spend by 19% via real-time feedback loops.</li>
-                    <li>Deployed distributed computer vision systems (Faster R-CNN) processing millions of frames at 18 FPS.</li>
-                    <li>Designed production-grade portfolio optimizers yielding +80% backtested annual returns.</li>
-                </ul>
-            </div>
-
-            <div class="experience-card reveal">
-                <div class="role-header">
-                    <span class="role-title">Founding Engineer & Tech Lead</span>
-                    <span class="company">Nextap AI</span>
-                </div>
-                <div class="mono" style="margin-bottom: 2rem; color: #888;">Apr 2023 – Jul 2024</div>
-                <ul class="impact-list">
-                    <li>Led the engineering division delivering 300+ AI projects across Generative Modeling and RL.</li>
-                    <li>Launched "Artific AI" (1,500+ users), integrating multi-modal foundation models.</li>
-                    <li>Pioneered imitation learning prototypes for sequential decision-making in applied robotics.</li>
-                </ul>
-            </div>
+            <h2 class="reveal" style="margin-bottom: 4rem; color: var(--accent-gold); font-size: 0.9rem; letter-spacing: 4px;">// TRAJECTORY</h2>
             
-            <div class="experience-card reveal">
-                <div class="role-header">
-                    <span class="role-title">Founder & Engineer</span>
-                    <span class="company">Nextap AI (Mumbai)</span>
+            <div class="exp-table reveal">
+                <div class="exp-row">
+                    <div class="exp-date">AUG 22 — APR 23</div>
+                    <div>
+                        <div class="exp-role">Senior Machine Learning Engineer</div>
+                        <span class="exp-company">ViaLYTICS Consulting</span>
+                        <ul class="exp-details">
+                            <li>Reduced AWS EC2 idle spend by 19% via RL autoscaler.</li>
+                            <li>Deployed distributed CV systems processing millions of frames at 18 FPS.</li>
+                            <li>+80% backtested annual return on portfolio optimizer (PyTorch).</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="mono" style="margin-bottom: 2rem; color: #888;">Sep 2021 – Aug 2022</div>
-                <ul class="impact-list">
-                    <li>Bootstrapped AI platform to five-figure revenue in under 6 months.</li>
-                    <li>Launched Codilarity.com, utilized by 2,000+ developers globally.</li>
-                </ul>
-            </div>
 
+                <div class="exp-row">
+                    <div class="exp-date">APR 23 — JUL 24</div>
+                    <div>
+                        <div class="exp-role">Founding ML Engineer & Lead</div>
+                        <span class="exp-company">Nextap AI</span>
+                        <ul class="exp-details">
+                            <li>Led delivery of 300+ AI projects across RL and GenAI.</li>
+                            <li>Created "Artific AI" app (1,500+ installs).</li>
+                            <li>Designed imitation learning prototypes for robotics.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="exp-row">
+                    <div class="exp-date">SEP 21 — AUG 22</div>
+                    <div>
+                        <div class="exp-role">Founder & Engineer</div>
+                        <span class="exp-company">Nextap AI (Mumbai)</span>
+                        <ul class="exp-details">
+                            <li>Bootstrapped platform to 5-figure revenue.</li>
+                            <li>Launched Codilarity.com (2,000+ developer users).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <!-- Technical Arsenal -->
-        <section style="padding-bottom: 10rem;">
-            <h2 class="mono gold-text" style="margin-bottom: 2rem;">04 // ARSENAL</h2>
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem; opacity: 0.8;">
-                <span style="font-size: 1.5rem; margin-right: 1rem;">PyTorch</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem; color: #666;">/</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem;">TensorFlow</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem; color: #666;">/</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem;">C++</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem; color: #666;">/</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem;">AWS Fleet Scale</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem; color: #666;">/</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem;">Docker</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem; color: #666;">/</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem;">Model Alignment</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem; color: #666;">/</span>
-                <span style="font-size: 1.5rem; margin-right: 1rem;">LiDAR Perception</span>
-            </div>
-        </section>
-
-        <footer style="border-top: 1px solid #333; padding: 2rem 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-            <div class="mono" style="font-size: 0.7rem;">© 2025 ASHWIN A. SHARMA.</div>
-            <div style="display: flex; gap: 2rem;">
-                <a href="mailto:sharmaashwin4000@gmail.com" style="color: #fff; text-decoration: none; font-size: 0.9rem;">CONTACT</a>
-                <a href="https://linkedin.com/in/ashwinsharma2001" style="color: #fff; text-decoration: none; font-size: 0.9rem;">LINKEDIN</a>
-                <a href="https://github.com/ashwin-2001" style="color: #fff; text-decoration: none; font-size: 0.9rem;">GITHUB</a>
-            </div>
+        <footer>
+            <div style="font-family: 'Cinzel'; color: #fff;">ASHWIN A. SHARMA</div>
+            <div style="font-family: monospace; color: #444;">NYC / REMOTE</div>
         </footer>
+
     </div>
 
     <script>
-        // --- 3D Configuration: The "Core" ---
+        // --- 1. Three.js Voxel Background (The Cloud) ---
         const scene = new THREE.Scene();
-        // Fog for depth
-        scene.fog = new THREE.FogExp2(0x050505, 0.05);
-        
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.z = 8;
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+        camera.position.z = 40;
+        camera.position.y = 10;
 
         const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimize for mobile
-        document.getElementById('world').appendChild(renderer.domElement);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-        // Lighting for "Gold/Metallic" feel
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambientLight);
-
-        const pointLight1 = new THREE.PointLight(0xD4AF37, 2, 20); // Gold light
-        pointLight1.position.set(5, 5, 5);
-        scene.add(pointLight1);
-
-        const pointLight2 = new THREE.PointLight(0x4444ff, 1, 20); // Blue rim light
-        pointLight2.position.set(-5, -5, 5);
-        scene.add(pointLight2);
-
-        // The Object: A Torus Knot (Complex, Mathematical, Expensive looking)
-        const geometry = new THREE.TorusKnotGeometry(1.5, 0.4, 150, 20);
-        
-        // Material: Physical metal look
-        const material = new THREE.MeshPhysicalMaterial({
-            color: 0x111111,
-            emissive: 0x000000,
-            roughness: 0.1,
-            metalness: 0.9,
-            reflectivity: 1,
-            clearcoat: 1.0,
-            clearcoatRoughness: 0.1,
-            wireframe: true
-        });
-
-        const torusKnot = new THREE.Mesh(geometry, material);
-        scene.add(torusKnot);
-
-        // Particles floating around (The "Data")
-        const particlesGeom = new THREE.BufferGeometry();
-        const particlesCount = 600;
-        const posArray = new Float32Array(particlesCount * 3);
-        for(let i=0; i<particlesCount*3; i++){
-            posArray[i] = (Math.random() - 0.5) * 20;
-        }
-        particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        const particlesMat = new THREE.PointsMaterial({
-            size: 0.03,
-            color: 0xD4AF37, // Gold dust
+        // Voxel InstancedMesh (Efficient rendering of thousands of cubes)
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0x444444, 
+            wireframe: true,
             transparent: true,
-            opacity: 0.6
+            opacity: 0.1
         });
-        const particles = new THREE.Points(particlesGeom, particlesMat);
-        scene.add(particles);
+        
+        const count = 600;
+        const mesh = new THREE.InstancedMesh(geometry, material, count);
+        scene.add(mesh);
+
+        const dummy = new THREE.Object3D();
+        const positions = []; // Store initial positions for animation
+
+        // Scatter voxels in a wide field
+        for (let i = 0; i < count; i++) {
+            const x = (Math.random() - 0.5) * 100;
+            const y = (Math.random() - 0.5) * 50;
+            const z = (Math.random() - 0.5) * 100;
+            positions.push({ x, y, z, speed: Math.random() * 0.02 });
+            
+            dummy.position.set(x, y, z);
+            dummy.updateMatrix();
+            mesh.setMatrixAt(i, dummy.matrix);
+        }
 
         // Animation Loop
-        let mouseX = 0;
-        let mouseY = 0;
-        
-        // Mouse/Touch listener
-        const onInputMove = (x, y) => {
-            mouseX = (x - window.innerWidth / 2) * 0.0005;
-            mouseY = (y - window.innerHeight / 2) * 0.0005;
-        };
-
-        window.addEventListener('mousemove', (e) => onInputMove(e.clientX, e.clientY));
-        window.addEventListener('touchmove', (e) => onInputMove(e.touches[0].clientX, e.touches[0].clientY));
-
-        const animate = () => {
+        let time = 0;
+        function animate() {
             requestAnimationFrame(animate);
-            
-            // Smooth rotation based on mouse + auto rotation
-            torusKnot.rotation.x += 0.002;
-            torusKnot.rotation.y += 0.003;
-            
-            // Subtle tilt towards mouse
-            torusKnot.rotation.x += (mouseY - torusKnot.rotation.x) * 0.05;
-            torusKnot.rotation.y += (mouseX - torusKnot.rotation.y) * 0.05;
+            time += 0.005;
 
-            particles.rotation.y -= 0.001;
+            // Slowly rotate the entire cloud
+            mesh.rotation.y = time * 0.1;
+
+            // Waving effect
+            for (let i = 0; i < count; i++) {
+                const { x, y, z, speed } = positions[i];
+                // Gentle floating
+                dummy.position.set(
+                    x, 
+                    y + Math.sin(time + x * 0.1) * 2, 
+                    z
+                );
+                
+                // Rotation based on scroll/time
+                dummy.rotation.x = time;
+                dummy.rotation.y = time;
+                
+                dummy.updateMatrix();
+                mesh.setMatrixAt(i, dummy.matrix);
+            }
+            mesh.instanceMatrix.needsUpdate = true;
 
             renderer.render(scene, camera);
-        };
+        }
         animate();
 
-        // Window Resize
+        // Handle Resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // --- GSAP Scroll Animations ---
+
+        // --- 2. GSAP Animations for Text ---
         gsap.registerPlugin(ScrollTrigger);
-
-        // 3D Object shifts color/position on scroll
-        ScrollTrigger.create({
-            trigger: "body",
-            start: "top top",
-            end: "bottom bottom",
-            onUpdate: (self) => {
-                const progress = self.progress;
-                // Rotate faster as you scroll down
-                torusKnot.rotation.z = progress * Math.PI * 2;
-                
-                // Color shift: Black/Gold -> Deep Blue/Silver -> Black/Gold
-                if(progress > 0.3 && progress < 0.7) {
-                    material.color.setHex(0x222244); // Blue tint in middle
-                    particlesMat.color.setHex(0xffffff); // Silver dust
-                } else {
-                    material.color.setHex(0x111111); // Black metal
-                    particlesMat.color.setHex(0xD4AF37); // Gold dust
+        
+        const revealElements = document.querySelectorAll('.reveal');
+        revealElements.forEach(element => {
+            gsap.fromTo(element, 
+                { opacity: 0, y: 50 },
+                {
+                    opacity: 1,
+                    y: 0,
+                    duration: 1,
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: element,
+                        start: "top 90%",
+                    }
                 }
-            }
+            );
         });
 
-        // Content Reveal
-        gsap.utils.toArray('.reveal').forEach(elem => {
-            gsap.from(elem, {
-                scrollTrigger: {
-                    trigger: elem,
-                    start: "top 85%"
-                },
-                y: 50,
-                opacity: 0,
-                duration: 1,
-                ease: "power3.out"
-            });
-        });
     </script>
 </body>
 </html>
